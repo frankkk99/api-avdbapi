@@ -140,7 +140,7 @@ function addCard() {
   const number = adminConfig.cards.length + 1;
   const card = { id: `placeholder-${Date.now()}`, type: 'movie', label: 'Movie', title: `Untitled Feature ${String(number).padStart(2, '0')}`, code: `M / ${String(number).padStart(2, '0')}`, meta: '2026 · metadata pending', year: 2026, genre: 'New', status: 'draft', visible: true };
   adminConfig.cards.unshift(card);
-  saveConfig('เพิ่ม placeholder ใหม่แล้ว');
+  saveConfig('เพิ่มการ์ดใหม่แล้ว');
   openCardEditor(card.id);
 }
 
@@ -241,7 +241,7 @@ $('[data-import]').addEventListener('change', (event) => {
 });
 
 $('[data-reset]').addEventListener('click', () => {
-  if (!window.confirm('คืนค่าข้อมูล placeholder ทั้งหมดใช่หรือไม่')) return;
+  if (!window.confirm('คืนค่าการ์ดจากข้อมูล AVDB API ทั้งหมดใช่หรือไม่')) return;
   adminConfig = window.avdbClone(window.AVDB_DEFAULT_CONFIG);
   saveConfig('คืนค่าเริ่มต้นแล้ว');
 });
