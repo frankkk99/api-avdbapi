@@ -1,6 +1,6 @@
 # AVDB Movie Library
 
-หน้าเว็บ static สำหรับ `frankkk99/api-avdbapi` ออกแบบเป็น Bento Glass interface พร้อมการ์ดหนังแนวตั้งแบบ placeholder เพื่อรอเชื่อมข้อมูลจริงจาก API
+หน้าเว็บ static สำหรับ `frankkk99/api-avdbapi` ออกแบบเป็น Bento Glass interface พร้อมการ์ดหนังแนวตั้งจากข้อมูลจริงใน AVDB API
 
 ## เปิดใช้งาน
 
@@ -12,11 +12,11 @@ python3 -m http.server 4173
 
 ## จุดที่เตรียมไว้สำหรับต่อ API
 
-- `placeholderMovies` ใน `app.js` คือจุดแทนที่ด้วยข้อมูลจาก API
+- `movie-data.js` เก็บข้อมูลการ์ดที่ normalize จากไฟล์ `avdbapi-details(1).json`
 - การ์ดรองรับ `movie`, `series` และ `special`
 - `data-type`, `data-title` ใช้ต่อยอดกับระบบ filter/search ได้
 - โครงสร้าง metadata แยก poster, title, year, duration/episode และ player status
-- ไม่มีภาพภายนอกหรือ asset ที่ต้องโหลดเพิ่ม การ์ดใช้ CSS placeholder ทั้งหมด
+- การ์ดแสดงโปสเตอร์จริง ชื่อเรื่อง รหัส หมวดหมู่ สถานะ และลิงก์ Player ที่พร้อมส่งต่อให้ HLSTest
 
 ## Admin control center
 
