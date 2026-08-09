@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#080a12" />
     <meta
       name="description"
-      content="AVDB movie library — Bento glass placeholder interface ready for movie data."
+      content="AVDB movie library — Bento glass cards populated from AVDB API data."
     />
-    <title>AVDB Movie Library — Data is on the way</title>
+    <title>AVDB Movie Library — Imported API Records</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -98,8 +98,8 @@
       <section id="library" class="library-section" data-section="library">
         <div class="section-heading">
           <div>
-            <div class="eyebrow"><span class="eyebrow-dot"></span> Placeholder collection</div>
-            <h2>ชั้นวางหนัง <span>/ รอข้อมูล</span></h2>
+            <div class="eyebrow"><span class="eyebrow-dot"></span> Imported collection</div>
+            <h2>ชั้นวางหนัง <span>/ จากข้อมูล API</span></h2>
           </div>
           <div class="library-tools">
             <label class="search-box">
@@ -118,7 +118,7 @@
           <button class="filter-chip" type="button" data-filter="movie" role="tab">Movies <b>06</b></button>
           <button class="filter-chip" type="button" data-filter="series" role="tab">Series <b>04</b></button>
           <button class="filter-chip" type="button" data-filter="special" role="tab">Specials <b>02</b></button>
-          <span class="filter-note"><i></i> cards will fill automatically</span>
+          <span class="filter-note"><i></i> synced from avdbapi</span>
         </div>
 
         <div class="movie-grid" data-movie-grid aria-live="polite"></div>
@@ -176,11 +176,12 @@
 
     <footer id="about" class="site-footer shell" data-section="footer">
       <div class="footer-brand"><span class="brand-mark"><span></span><span></span><span></span></span><strong data-footer-name>AVDB</strong></div>
-      <p data-footer-note>Placeholder interface for the next movie data layer.</p>
+      <p data-footer-note>Imported movie records from the AVDB API.</p>
       <span class="footer-status"><i></i> System standing by</span>
       <a class="admin-link" href="./admin.html">Admin console ↗</a>
     </footer>
 
+    <script src="./movie-data.js"></script>
     <script src="./site-config.js"></script>
     <script src="./app.js"></script>
   </body>
