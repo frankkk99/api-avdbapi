@@ -56,6 +56,7 @@
     try {
       const saved = JSON.parse(localStorage.getItem(window.AVDB_STORAGE_KEY));
       if (saved && Array.isArray(saved.cards)) {
+        const isCurrentVersion = saved.version >= window.AVDB_DEFAULT_CONFIG.version;
         const savedById = new Map(saved.cards.map((card) => [card.id, card]));
         const importedIds = new Set(window.AVDB_DEFAULT_CONFIG.cards.map((card) => card.id));
         const mergedCards = window.AVDB_DEFAULT_CONFIG.cards.map((card) => ({
@@ -69,10 +70,16 @@
           ...window.avdbClone(window.AVDB_DEFAULT_CONFIG),
           ...saved,
           version: window.AVDB_DEFAULT_CONFIG.version,
-          site: { ...window.AVDB_DEFAULT_CONFIG.site, ...(saved.site || {}) },
-          hero: { ...window.AVDB_DEFAULT_CONFIG.hero, ...(saved.hero || {}) },
+          site: isCurrentVersion
+            ? { ...window.AVDB_DEFAULT_CONFIG.site, ...(saved.site || {}) }
+            : window.avdbClone(window.AVDB_DEFAULT_CONFIG.site),
+          hero: isCurrentVersion
+            ? { ...window.AVDB_DEFAULT_CONFIG.hero, ...(saved.hero || {}) }
+            : window.avdbClone(window.AVDB_DEFAULT_CONFIG.hero),
           sections: { ...window.AVDB_DEFAULT_CONFIG.sections, ...(saved.sections || {}) },
-          stats: Array.isArray(saved.stats) ? saved.stats : window.avdbClone(window.AVDB_DEFAULT_CONFIG.stats),
+          stats: isCurrentVersion && Array.isArray(saved.stats)
+            ? saved.stats
+            : window.avdbClone(window.AVDB_DEFAULT_CONFIG.stats),
           cards: [...mergedCards, ...customCards],
         };
       }
