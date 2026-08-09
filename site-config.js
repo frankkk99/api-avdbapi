@@ -20,25 +20,32 @@
     playerUserAgent: '',
   }));
 
+  const importedCards = Array.isArray(window.AVDB_IMPORTED_MOVIES) && window.AVDB_IMPORTED_MOVIES.length
+    ? window.AVDB_IMPORTED_MOVIES
+    : cards;
+  const importedSeries = importedCards.filter((card) => card.type === 'series').length;
+  const importedPlayers = importedCards.filter((card) => Boolean(card.playerUrl)).length;
+  const importedPosters = importedCards.filter((card) => Boolean(card.posterUrl || card.thumbUrl)).length;
+
   window.AVDB_STORAGE_KEY = 'avdb-site-config-v1';
   window.AVDB_DEFAULT_CONFIG = {
-    version: 1,
-    site: { name: 'AVDB', eyebrow: 'MOVIE LIBRARY', footerNote: 'Placeholder interface for the next movie data layer.' },
+    version: 2,
+    site: { name: 'AVDB', eyebrow: 'MOVIE LIBRARY', footerNote: 'Imported movie records from the AVDB API.' },
     hero: {
-      eyebrow: 'Content system / v.01',
-      lead: 'เรื่องราวดี ๆ',
-      accent: 'กำลังเดินทางมา',
-      description: 'พื้นที่สำหรับคลังหนังที่ออกแบบไว้รอข้อมูลจริงจาก API — ค้นหา จัดหมวดหมู่ และต่อยอดได้ในโครงสร้างเดียวกัน',
-      cta: 'สำรวจคลังตัวอย่าง',
-      status: 'API READY',
+      eyebrow: 'AVDB API / imported records',
+      lead: 'คลังหนังจริง',
+      accent: 'พร้อมดูจากข้อมูล API',
+      description: 'การ์ดแนวตั้งจากข้อมูล AVDB API พร้อมโปสเตอร์ หมวดหมู่ รหัสเรื่อง และ Player ที่เชื่อมต่อผ่าน HLSTest',
+      cta: 'เปิดคลังหนัง',
+      status: 'DATA SYNCED',
     },
     stats: [
-      { label: 'Movie slots', value: '12', note: 'reserved placeholders' },
-      { label: 'Series slots', value: '08', note: 'episodes ready to map' },
-      { label: 'Data points', value: '40+', note: 'metadata fields planned' },
+      { label: 'Imported records', value: String(importedCards.length), note: 'records from attached JSON' },
+      { label: 'Series records', value: String(importedSeries), note: 'episode records detected' },
+      { label: 'Poster / player', value: `${importedPosters} / ${importedPlayers}`, note: 'ready for the front end' },
     ],
     sections: { hero: true, stats: true, library: true, blueprint: true, footer: true },
-    cards,
+    cards: importedCards,
   };
 
   window.avdbClone = function (value) {
@@ -48,7 +55,27 @@
   window.avdbLoadConfig = function () {
     try {
       const saved = JSON.parse(localStorage.getItem(window.AVDB_STORAGE_KEY));
-      if (saved && Array.isArray(saved.cards)) return saved;
+      if (saved && Array.isArray(saved.cards)) {
+        const savedById = new Map(saved.cards.map((card) => [card.id, card]));
+        const importedIds = new Set(window.AVDB_DEFAULT_CONFIG.cards.map((card) => card.id));
+        const mergedCards = window.AVDB_DEFAULT_CONFIG.cards.map((card) => ({
+          ...card,
+          ...(savedById.get(card.id) || {}),
+        }));
+        const customCards = saved.version >= window.AVDB_DEFAULT_CONFIG.version
+          ? saved.cards.filter((card) => !importedIds.has(card.id))
+          : [];
+        return {
+          ...window.avdbClone(window.AVDB_DEFAULT_CONFIG),
+          ...saved,
+          version: window.AVDB_DEFAULT_CONFIG.version,
+          site: { ...window.AVDB_DEFAULT_CONFIG.site, ...(saved.site || {}) },
+          hero: { ...window.AVDB_DEFAULT_CONFIG.hero, ...(saved.hero || {}) },
+          sections: { ...window.AVDB_DEFAULT_CONFIG.sections, ...(saved.sections || {}) },
+          stats: Array.isArray(saved.stats) ? saved.stats : window.avdbClone(window.AVDB_DEFAULT_CONFIG.stats),
+          cards: [...mergedCards, ...customCards],
+        };
+      }
     } catch (error) {
       console.warn('AVDB config could not be loaded.', error);
     }
