@@ -56,19 +56,24 @@ function updateFilterCounts() {
 function cardTemplate(movie, index) {
   const safeStatus = escapeHtml(movie.status || 'waiting');
   const playerReady = Boolean(movie.playerUrl);
+  const poster = movie.posterUrl || movie.thumbUrl || '';
   const playerAction = playerReady
     ? `<a class="card-player-link" href="./watch.html?id=${encodeURIComponent(movie.id)}">▶ ดู Player</a>`
     : '<span class="card-player-link pending">Player pending</span>';
+  const posterImage = poster
+    ? `<img class="poster-image" src="${escapeHtml(poster)}" alt="โปสเตอร์ ${escapeHtml(movie.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.poster-placeholder').classList.add('poster-error'); this.remove();" />`
+    : '';
   return `
     <article class="movie-card" data-type="${escapeHtml(movie.type)}" data-title="${escapeHtml(movie.title.toLowerCase())}">
-      <div class="poster-placeholder">
+      <div class="poster-placeholder ${poster ? 'has-poster' : ''}">
+        ${posterImage}
         <span class="card-index">${String(index + 1).padStart(2, '0')}</span>
         <span class="card-status"><i></i> ${safeStatus}</span>
-        <div class="poster-wordmark">${escapeHtml(movie.code)}<small>${escapeHtml(movie.label).toUpperCase()} / PLACEHOLDER</small></div>
+        <div class="poster-wordmark ${poster ? 'poster-fallback' : ''}">${escapeHtml(movie.code)}<small>${escapeHtml(movie.label).toUpperCase()}</small></div>
       </div>
       <div class="card-info">
         <h3>${escapeHtml(movie.title)}</h3>
-        <div class="card-meta"><span>${escapeHtml(movie.meta)}</span><span>•••</span></div>
+        <div class="card-meta"><span>${escapeHtml(movie.meta)}</span><span>${escapeHtml(movie.genre || movie.label)}</span></div>
         <div class="card-skeleton" aria-hidden="true"></div>
         <div class="card-player-row">${playerAction}</div>
       </div>
