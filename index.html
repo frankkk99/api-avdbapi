@@ -19,8 +19,8 @@
       <a class="brand" href="#top" aria-label="AVDB Movie Library home">
         <span class="brand-mark"><span></span><span></span><span></span></span>
         <span>
-          <strong>AVDB</strong>
-          <small>MOVIE LIBRARY</small>
+          <strong data-site-name>AVDB</strong>
+          <small data-site-eyebrow>MOVIE LIBRARY</small>
         </span>
       </a>
 
@@ -31,7 +31,7 @@
       </nav>
 
       <div class="header-actions">
-        <span class="live-pill"><i></i> API READY</span>
+        <span class="live-pill"><i></i> <span data-hero-status>API READY</span></span>
         <button class="icon-button" type="button" data-theme-toggle aria-label="สลับบรรยากาศสี">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3v2M12 19v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.9 9.9 1.4 1.4m0-12.72-1.4 1.42m-9.9 9.9-1.42 1.4" />
@@ -42,17 +42,14 @@
     </header>
 
     <main id="top" class="shell">
-      <section class="hero bento-panel" aria-labelledby="hero-title">
+      <section class="hero bento-panel" data-section="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> Content system / v.01</div>
-          <h1 id="hero-title">เรื่องราวดี ๆ<br /><em>กำลังเดินทางมา</em></h1>
-          <p class="hero-description">
-            พื้นที่สำหรับคลังหนังที่ออกแบบไว้รอข้อมูลจริงจาก API — ค้นหา จัดหมวดหมู่
-            และต่อยอดได้ในโครงสร้างเดียวกัน
-          </p>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> <span data-hero-eyebrow>Content system / v.01</span></div>
+          <h1 id="hero-title"><span data-hero-lead>เรื่องราวดี ๆ</span><br /><em data-hero-accent>กำลังเดินทางมา</em></h1>
+          <p class="hero-description" data-hero-description></p>
           <div class="hero-cta-row">
             <a class="primary-button" href="#library">
-              สำรวจคลังตัวอย่าง
+              <span data-hero-cta>สำรวจคลังตัวอย่าง</span>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" /></svg>
             </a>
             <a class="text-button" href="#blueprint">ดู data blueprint <span>↗</span></a>
@@ -80,25 +77,25 @@
         </div>
       </section>
 
-      <section class="stats-grid" aria-label="สถิติพื้นที่ข้อมูล">
+      <section class="stats-grid" data-section="stats" aria-label="สถิติพื้นที่ข้อมูล">
         <article class="stat-card bento-panel accent-card">
           <div class="stat-icon icon-violet">✦</div>
-          <div><span>Movie slots</span><strong>12</strong></div>
-          <small>reserved placeholders</small>
+          <div><span data-stat-label="0">Movie slots</span><strong data-stat-value="0">12</strong></div>
+          <small data-stat-note="0">reserved placeholders</small>
         </article>
         <article class="stat-card bento-panel">
           <div class="stat-icon icon-blue">◌</div>
-          <div><span>Series slots</span><strong>08</strong></div>
-          <small>episodes ready to map</small>
+          <div><span data-stat-label="1">Series slots</span><strong data-stat-value="1">08</strong></div>
+          <small data-stat-note="1">episodes ready to map</small>
         </article>
         <article class="stat-card bento-panel">
           <div class="stat-icon icon-mint">↗</div>
-          <div><span>Data points</span><strong>40+</strong></div>
-          <small>metadata fields planned</small>
+          <div><span data-stat-label="2">Data points</span><strong data-stat-value="2">40+</strong></div>
+          <small data-stat-note="2">metadata fields planned</small>
         </article>
       </section>
 
-      <section id="library" class="library-section">
+      <section id="library" class="library-section" data-section="library">
         <div class="section-heading">
           <div>
             <div class="eyebrow"><span class="eyebrow-dot"></span> Placeholder collection</div>
@@ -132,7 +129,7 @@
         </div>
       </section>
 
-      <section id="blueprint" class="blueprint-section">
+      <section id="blueprint" class="blueprint-section" data-section="blueprint">
         <div class="section-heading compact-heading">
           <div>
             <div class="eyebrow"><span class="eyebrow-dot"></span> Ready to connect</div>
@@ -177,12 +174,14 @@
       </section>
     </main>
 
-    <footer id="about" class="site-footer shell">
-      <div class="footer-brand"><span class="brand-mark"><span></span><span></span><span></span></span><strong>AVDB</strong></div>
-      <p>Placeholder interface for the next movie data layer.</p>
+    <footer id="about" class="site-footer shell" data-section="footer">
+      <div class="footer-brand"><span class="brand-mark"><span></span><span></span><span></span></span><strong data-footer-name>AVDB</strong></div>
+      <p data-footer-note>Placeholder interface for the next movie data layer.</p>
       <span class="footer-status"><i></i> System standing by</span>
+      <a class="admin-link" href="./admin.html">Admin console ↗</a>
     </footer>
 
+    <script src="./site-config.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
