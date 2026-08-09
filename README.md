@@ -17,3 +17,15 @@ python3 -m http.server 4173
 - `data-type`, `data-title` ใช้ต่อยอดกับระบบ filter/search ได้
 - โครงสร้าง metadata แยก poster, title, year, duration/episode และ player status
 - ไม่มีภาพภายนอกหรือ asset ที่ต้องโหลดเพิ่ม การ์ดใช้ CSS placeholder ทั้งหมด
+
+## Admin control center
+
+เปิด `/admin.html` เพื่อจัดการ:
+
+- Hero, brand, CTA, API status และข้อความ footer
+- การ์ดหนัง: เพิ่ม แก้ไข ซ่อน/แสดง ลบ เปลี่ยนประเภท ปี genre metadata และสถานะ
+- เปิด/ปิด Hero, stats, library, blueprint และ footer
+- Dashboard KPI, กราฟ pipeline และสัดส่วน Movie/Series/Special
+- Export/Import configuration เป็น JSON และ reset กลับค่าเริ่มต้น
+
+หมายเหตุ: เวอร์ชันนี้เป็น static admin ที่เก็บค่าใน `localStorage` ของ browser เดียวกัน จึงเหมาะสำหรับทำโครงและทดสอบหน้าเว็บก่อน หากต้องการให้แอดมินหลายเครื่องเห็นข้อมูลร่วมกัน ต้องต่อฐานข้อมูลและระบบ Auth จริงในขั้นถัดไป
