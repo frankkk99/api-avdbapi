@@ -34,7 +34,7 @@
           <div>
             <div class="eyebrow"><span class="eyebrow-dot"></span> AVDB / content operations</div>
             <h1>หน้าควบคุมเว็บไซต์</h1>
-            <p>จัดการข้อมูล placeholder และหน้าตาเว็บไซต์จากจุดเดียว</p>
+            <p>จัดการการ์ดหนังจาก AVDB API และหน้าตาเว็บไซต์จากจุดเดียว</p>
           </div>
           <div class="topbar-actions">
             <span class="save-status" data-save-status><i></i> บันทึกในเครื่องแล้ว</span>
@@ -54,7 +54,7 @@
             <article class="chart-card glass"><div class="card-heading"><div><span class="panel-kicker">Content pipeline</span><h3>สถานะข้อมูล</h3></div><span class="chart-caption">12 records</span></div><div class="bar-chart" data-activity-bars></div><div class="chart-axis"><span>Poster</span><span>Metadata</span><span>Player</span><span>Publish</span></div></article>
             <article class="chart-card glass"><div class="card-heading"><div><span class="panel-kicker">Library mix</span><h3>สัดส่วนคลัง</h3></div></div><div class="donut-wrap"><div class="donut" data-category-chart><span data-donut-total>12</span><small>items</small></div><div class="legend" data-category-legend></div></div></article>
           </div>
-          <div class="quick-actions glass"><div><span class="panel-kicker">Quick actions</span><h3>จัดการด่วน</h3></div><div class="quick-buttons"><button type="button" data-quick="add">+ เพิ่มการ์ด placeholder</button><button type="button" data-quick="homepage">แก้ Hero และข้อความ</button><button type="button" data-quick="backup">สำรองข้อมูล JSON</button></div></div>
+          <div class="quick-actions glass"><div><span class="panel-kicker">Quick actions</span><h3>จัดการด่วน</h3></div><div class="quick-buttons"><button type="button" data-quick="add">+ เพิ่มการ์ดใหม่</button><button type="button" data-quick="homepage">แก้ Hero และข้อความ</button><button type="button" data-quick="backup">สำรองข้อมูล JSON</button></div></div>
         </section>
 
         <section class="admin-panel" data-admin-panel="content">
@@ -83,7 +83,7 @@
 
         <section class="admin-panel" data-admin-panel="data">
           <div class="panel-heading"><div><span class="panel-kicker">Data safety</span><h2>ข้อมูลและการสำรอง</h2></div><span class="updated-at">Local JSON snapshot</span></div>
-          <div class="backup-grid"><article class="backup-card glass"><span class="backup-icon mint">↓</span><h3>Export configuration</h3><p>ดาวน์โหลดการตั้งค่าหน้าบ้านและรายการหนังทั้งหมดเป็นไฟล์ JSON</p><button class="secondary-button" type="button" data-export>ดาวน์โหลด JSON</button></article><article class="backup-card glass"><span class="backup-icon blue">↑</span><h3>Import configuration</h3><p>นำไฟล์ JSON ที่สำรองไว้กลับมาใช้กับหน้านี้</p><label class="secondary-button file-button">เลือกไฟล์ JSON<input type="file" accept="application/json" data-import hidden /></label></article><article class="backup-card glass danger-card"><span class="backup-icon pink">↺</span><h3>Reset placeholders</h3><p>คืนค่าข้อมูลเริ่มต้นทั้งหมด ใช้เมื่ออยากเริ่มจัดหน้าใหม่</p><button class="secondary-button danger" type="button" data-reset>คืนค่าเริ่มต้น</button></article></div>
+          <div class="backup-grid"><article class="backup-card glass"><span class="backup-icon mint">↓</span><h3>Export configuration</h3><p>ดาวน์โหลดการตั้งค่าหน้าบ้านและรายการหนังทั้งหมดเป็นไฟล์ JSON</p><button class="secondary-button" type="button" data-export>ดาวน์โหลด JSON</button></article><article class="backup-card glass"><span class="backup-icon blue">↑</span><h3>Import configuration</h3><p>นำไฟล์ JSON ที่สำรองไว้กลับมาใช้กับหน้านี้</p><label class="secondary-button file-button">เลือกไฟล์ JSON<input type="file" accept="application/json" data-import hidden /></label></article><article class="backup-card glass danger-card"><span class="backup-icon pink">↺</span><h3>Reset imported data</h3><p>คืนค่าการ์ดจากข้อมูล AVDB API เริ่มต้น ใช้เมื่ออยากเริ่มจัดหน้าใหม่</p><button class="secondary-button danger" type="button" data-reset>คืนค่าเริ่มต้น</button></article></div>
           <div class="data-contract glass"><div class="contract-head"><span class="panel-kicker">API contract preview</span><span class="contract-dot"><i></i> ready to map</span></div><pre data-json-preview></pre></div>
         </section>
       </main>
@@ -98,6 +98,7 @@
       </form>
     </div>
     <div class="toast" data-toast></div>
+    <script src="./movie-data.js"></script>
     <script src="./site-config.js"></script>
     <script src="./admin.js"></script>
   </body>
