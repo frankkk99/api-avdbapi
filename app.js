@@ -55,6 +55,10 @@ function updateFilterCounts() {
 
 function cardTemplate(movie, index) {
   const safeStatus = escapeHtml(movie.status || 'waiting');
+  const playerReady = Boolean(movie.playerUrl);
+  const playerAction = playerReady
+    ? `<a class="card-player-link" href="./watch.html?id=${encodeURIComponent(movie.id)}">▶ ดู Player</a>`
+    : '<span class="card-player-link pending">Player pending</span>';
   return `
     <article class="movie-card" data-type="${escapeHtml(movie.type)}" data-title="${escapeHtml(movie.title.toLowerCase())}">
       <div class="poster-placeholder">
@@ -66,6 +70,7 @@ function cardTemplate(movie, index) {
         <h3>${escapeHtml(movie.title)}</h3>
         <div class="card-meta"><span>${escapeHtml(movie.meta)}</span><span>•••</span></div>
         <div class="card-skeleton" aria-hidden="true"></div>
+        <div class="card-player-row">${playerAction}</div>
       </div>
     </article>
   `;
