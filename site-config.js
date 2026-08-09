@@ -12,7 +12,13 @@
     { id: 'movie-05', type: 'movie', label: 'Movie', title: 'Untitled Feature 05', code: 'M / 05', meta: '2025 · 2h 02m', year: 2025, genre: 'Comedy', status: 'waiting', visible: true },
     { id: 'series-04', type: 'series', label: 'Series', title: 'Untitled Series 04', code: 'S / 04', meta: 'S01 · 12 EP', year: 2026, genre: 'Drama', status: 'waiting', visible: true },
     { id: 'movie-06', type: 'movie', label: 'Movie', title: 'Untitled Feature 06', code: 'M / 06', meta: '2026 · 1h 39m', year: 2026, genre: 'Action', status: 'waiting', visible: true },
-  ];
+  ].map((card) => ({
+    ...card,
+    playerUrl: '',
+    playerOrigin: 'https://upload18.org',
+    playerReferer: 'https://upload18.org/',
+    playerUserAgent: '',
+  }));
 
   window.AVDB_STORAGE_KEY = 'avdb-site-config-v1';
   window.AVDB_DEFAULT_CONFIG = {
