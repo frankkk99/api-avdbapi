@@ -1,34 +1,70 @@
-const placeholderMovies = [
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 01', code: 'M / 01', meta: '2026 · 2h 08m' },
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 02', code: 'M / 02', meta: '2026 · 1h 54m' },
-  { type: 'series', label: 'Series', title: 'Untitled Series 01', code: 'S / 01', meta: 'S01 · 08 EP' },
-  { type: 'special', label: 'Special', title: 'Untitled Special 01', code: 'X / 01', meta: 'Special · 4K' },
-  { type: 'series', label: 'Series', title: 'Untitled Series 02', code: 'S / 02', meta: 'S01 · 10 EP' },
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 03', code: 'M / 03', meta: '2026 · 2h 21m' },
-  { type: 'special', label: 'Special', title: 'Untitled Special 02', code: 'X / 02', meta: 'Special · 16:9' },
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 04', code: 'M / 04', meta: '2025 · 1h 48m' },
-  { type: 'series', label: 'Series', title: 'Untitled Series 03', code: 'S / 03', meta: 'S02 · 06 EP' },
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 05', code: 'M / 05', meta: '2025 · 2h 02m' },
-  { type: 'series', label: 'Series', title: 'Untitled Series 04', code: 'S / 04', meta: 'S01 · 12 EP' },
-  { type: 'movie', label: 'Movie', title: 'Untitled Feature 06', code: 'M / 06', meta: '2026 · 1h 39m' },
-];
+let siteConfig = window.avdbLoadConfig();
+let activeFilter = 'all';
 
 const grid = document.querySelector('[data-movie-grid]');
 const emptyState = document.querySelector('[data-empty-state]');
 const searchInput = document.querySelector('[data-search]');
-let activeFilter = 'all';
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  }[character]));
+}
+
+function hydrateHome() {
+  const { site, hero, stats, sections } = siteConfig;
+  document.querySelector('[data-site-name]').textContent = site.name;
+  document.querySelector('[data-site-eyebrow]').textContent = site.eyebrow;
+  document.querySelector('[data-footer-name]').textContent = site.name;
+  document.querySelector('[data-footer-note]').textContent = site.footerNote;
+  document.querySelector('[data-hero-eyebrow]').textContent = hero.eyebrow;
+  document.querySelector('[data-hero-lead]').textContent = hero.lead;
+  document.querySelector('[data-hero-accent]').textContent = hero.accent;
+  document.querySelector('[data-hero-description]').textContent = hero.description;
+  document.querySelector('[data-hero-cta]').textContent = hero.cta;
+  document.querySelector('[data-hero-status]').textContent = hero.status;
+
+  stats.forEach((stat, index) => {
+    const label = document.querySelector(`[data-stat-label="${index}"]`);
+    const value = document.querySelector(`[data-stat-value="${index}"]`);
+    const note = document.querySelector(`[data-stat-note="${index}"]`);
+    if (label) label.textContent = stat.label;
+    if (value) value.textContent = stat.value;
+    if (note) note.textContent = stat.note;
+  });
+
+  document.querySelectorAll('[data-section]').forEach((section) => {
+    section.hidden = sections[section.dataset.section] === false;
+  });
+  updateFilterCounts();
+  renderMovies();
+}
+
+function updateFilterCounts() {
+  const visibleCards = siteConfig.cards.filter((card) => card.visible !== false);
+  const counts = visibleCards.reduce((result, card) => {
+    result[card.type] = (result[card.type] || 0) + 1;
+    return result;
+  }, {});
+  document.querySelector('[data-filter="all"] b').textContent = String(visibleCards.length).padStart(2, '0');
+  ['movie', 'series', 'special'].forEach((type) => {
+    const count = document.querySelector(`[data-filter="${type}"] b`);
+    if (count) count.textContent = String(counts[type] || 0).padStart(2, '0');
+  });
+}
 
 function cardTemplate(movie, index) {
+  const safeStatus = escapeHtml(movie.status || 'waiting');
   return `
-    <article class="movie-card" data-type="${movie.type}" data-title="${movie.title.toLowerCase()}">
+    <article class="movie-card" data-type="${escapeHtml(movie.type)}" data-title="${escapeHtml(movie.title.toLowerCase())}">
       <div class="poster-placeholder">
         <span class="card-index">${String(index + 1).padStart(2, '0')}</span>
-        <span class="card-status"><i></i> waiting</span>
-        <div class="poster-wordmark">${movie.code}<small>${movie.label.toUpperCase()} / PLACEHOLDER</small></div>
+        <span class="card-status"><i></i> ${safeStatus}</span>
+        <div class="poster-wordmark">${escapeHtml(movie.code)}<small>${escapeHtml(movie.label).toUpperCase()} / PLACEHOLDER</small></div>
       </div>
       <div class="card-info">
-        <h3>${movie.title}</h3>
-        <div class="card-meta"><span>${movie.meta}</span><span>•••</span></div>
+        <h3>${escapeHtml(movie.title)}</h3>
+        <div class="card-meta"><span>${escapeHtml(movie.meta)}</span><span>•••</span></div>
         <div class="card-skeleton" aria-hidden="true"></div>
       </div>
     </article>
@@ -37,13 +73,14 @@ function cardTemplate(movie, index) {
 
 function renderMovies() {
   const query = searchInput.value.trim().toLowerCase();
-  const filtered = placeholderMovies.filter((movie) => {
+  const filtered = siteConfig.cards.filter((movie) => {
+    if (movie.visible === false) return false;
     const matchesFilter = activeFilter === 'all' || movie.type === activeFilter;
     const matchesSearch = !query || movie.title.toLowerCase().includes(query) || movie.code.toLowerCase().includes(query);
     return matchesFilter && matchesSearch;
   });
 
-  grid.innerHTML = filtered.map((movie) => cardTemplate(movie, placeholderMovies.indexOf(movie))).join('');
+  grid.innerHTML = filtered.map((movie) => cardTemplate(movie, siteConfig.cards.indexOf(movie))).join('');
   emptyState.hidden = filtered.length !== 0;
 }
 
@@ -68,4 +105,16 @@ document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
   document.body.classList.toggle('warm-mode');
 });
 
-renderMovies();
+window.addEventListener('storage', (event) => {
+  if (event.key === window.AVDB_STORAGE_KEY) {
+    siteConfig = window.avdbLoadConfig();
+    hydrateHome();
+  }
+});
+
+window.addEventListener('avdb-config-updated', (event) => {
+  siteConfig = event.detail;
+  hydrateHome();
+});
+
+hydrateHome();
