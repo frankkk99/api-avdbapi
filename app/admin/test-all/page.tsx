@@ -83,7 +83,7 @@ export default function TestAllPage() {
   const [search, setSearch] = useState("");
   const [loadedScope, setLoadedScope] = useState("ทุกสถานะ · ทั้งที่แสดงและซ่อน");
   const [actionLoading, setActionLoading] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [playerMessage, setPlayerMessage] = useState("กดการ์ดเพื่อเรียก Player และทดสอบการเล่น");
   const cancelRef = useRef(false);
