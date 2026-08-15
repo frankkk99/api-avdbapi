@@ -46,7 +46,7 @@ cp .env.example .env
 npm start
 ```
 
-ค่าเริ่มต้นคือ `START_PAGE=1` ถึง `END_PAGE=10262` และ runner จะบันทึก progress หลังทุกหน้า สามารถ resume ด้วย `RUN_ID=<run-id>` เดิมได้
+โหมดแนะนำคือดึงทีละหน้าโดยตั้ง `PAGE=3` แล้วเปลี่ยนเป็น `PAGE=4` เมื่อพร้อม Runner จะบันทึก progress และรายการลง Supabase ทุกครั้ง หากต้องการ resume งานเดิม ให้ใช้ `RUN_ID=<run-id>` เดิม
 
 Service role key ต้องอยู่เฉพาะใน runner/Vercel environment ห้ามใส่ใน browser, HTML หรือ GitHub
 
