@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const BASE_URL = (process.env.AVDB_BASE_URL || 'https://avdbapi.com').replace(/\/$/, '');
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RUN_ID = process.env.RUN_ID || '';
 const DEFAULT_START = Math.max(Number(process.env.START_PAGE || 1), 1);
 const DEFAULT_END = Math.max(Number(process.env.END_PAGE || 10262), DEFAULT_START);
@@ -12,7 +12,7 @@ const PAGE_DELAY_MS = Math.max(Number(process.env.PAGE_DELAY_MS || 1200), 0);
 const API_CONCURRENCY = Math.min(Math.max(Number(process.env.API_CONCURRENCY || 6), 1), 8);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+  throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) are required');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
