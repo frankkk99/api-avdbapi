@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
     const storage = body?.persist === false
       ? { configured: isHlshubConfigured(), savedCount: 0, error: null }
       : await saveHlshubDiscoveredBatch(items);
-    if (storage.savedCount > 0) revalidateTag("hlshub-catalog");
+    if (storage.savedCount > 0) revalidateTag("hlshub-catalog", "max");
 
     return NextResponse.json({
       ok: true,
