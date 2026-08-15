@@ -1,4 +1,4 @@
-let siteConfig = window.avdbLoadConfig();
+let siteConfig = { ...window.avdbLoadConfig(), cards: [] };
 let activeFilter = 'all';
 
 const grid = document.querySelector('[data-movie-grid]');
@@ -38,6 +38,65 @@ function hydrateHome() {
   });
   updateFilterCounts();
   renderMovies();
+}
+
+function categoryNames(value) {
+  if (!Array.isArray(value)) return value ? String(value) : '';
+  return value.map((item) => typeof item === 'string' ? item : item?.name || item?.title || '').filter(Boolean).join(' · ');
+}
+
+function mapVip5Item(item) {
+  const typeName = String(item.type_name || 'AVDB');
+  const type = /series|tv|ซีรีส์|电视剧/i.test(typeName) ? 'series' : /special|พิเศษ/i.test(typeName) ? 'special' : 'movie';
+  const meta = [item.year, item.duration, item.quality].filter(Boolean).join(' · ') || 'VIP5 metadata';
+  const playerUrl = item.player_page_url || '';
+  return {
+    id: item.id,
+    type,
+    label: typeName,
+    title: item.name || item.original_name || item.movie_code || item.external_id,
+    code: item.movie_code || item.external_id,
+    meta,
+    year: item.year || '',
+    genre: categoryNames(item.category) || typeName,
+    status: playerUrl && item.player_status !== 'broken' ? 'ready' : 'waiting',
+    visible: item.is_active !== false,
+    posterUrl: item.poster_url || '',
+    thumbUrl: item.thumb_url || '',
+    playerUrl,
+    playerOrigin: item.player_origin || 'https://upload18.org',
+    playerReferer: item.player_referer || 'https://upload18.org/',
+    playerProvider: item.player_provider || 'upload18',
+    sourcePageUrl: item.source_page_url || '',
+  };
+}
+
+function updateVip5Stats(items, total) {
+  const series = items.filter((item) => item.type === 'series').length;
+  const posters = items.filter((item) => item.posterUrl || item.thumbUrl).length;
+  const players = items.filter((item) => item.playerUrl).length;
+  siteConfig.stats = [
+    { label: 'VIP5 records', value: String(total), note: 'records from Supabase VIP5' },
+    { label: 'Series records', value: String(series), note: 'visible records in latest page' },
+    { label: 'Poster / player', value: `${posters} / ${players}`, note: 'latest VIP5 records loaded' },
+  ];
+}
+
+async function loadVip5() {
+  try {
+    const response = await fetch('./api/vip5?limit=100', { headers: { Accept: 'application/json' } });
+    const payload = await response.json();
+    if (!response.ok || !payload.ok || !Array.isArray(payload.items)) throw new Error(payload.error || `HTTP ${response.status}`);
+    siteConfig.cards = payload.items.map(mapVip5Item);
+    updateVip5Stats(siteConfig.cards, payload.total ?? siteConfig.cards.length);
+  } catch (error) {
+    console.error('VIP5 records could not be loaded.', error);
+    siteConfig.cards = [];
+    updateVip5Stats([], 0);
+    const description = document.querySelector('[data-hero-description]');
+    if (description) description.textContent = 'ยังโหลดข้อมูล VIP5 ไม่สำเร็จ กรุณาตรวจสอบ API และ Local Runner';
+  }
+  hydrateHome();
 }
 
 function updateFilterCounts() {
@@ -117,14 +176,15 @@ document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
 
 window.addEventListener('storage', (event) => {
   if (event.key === window.AVDB_STORAGE_KEY) {
-    siteConfig = window.avdbLoadConfig();
+    siteConfig = { ...window.avdbLoadConfig(), cards: siteConfig.cards };
     hydrateHome();
   }
 });
 
 window.addEventListener('avdb-config-updated', (event) => {
-  siteConfig = event.detail;
+  siteConfig = { ...event.detail, cards: siteConfig.cards };
   hydrateHome();
 });
 
 hydrateHome();
+loadVip5();
