@@ -15,6 +15,7 @@ const CHROME_USER_DATA_DIR = process.env.CHROME_USER_DATA_DIR || '';
 const PAGE_RETRY_COUNT = Math.min(Math.max(Number(process.env.PAGE_RETRY_COUNT || 3), 1), 5);
 const PAGE_403_WAIT_MS = Math.max(Number(process.env.PAGE_403_WAIT_MS || 10000), 0);
 const MAX_CONSECUTIVE_403 = Math.min(Math.max(Number(process.env.MAX_CONSECUTIVE_403 || 5), 1), 20);
+const HUMAN_VERIFICATION_WAIT_MS = Math.max(Number(process.env.HUMAN_VERIFICATION_WAIT_MS || 600000), 30000);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) are required');
@@ -38,6 +39,43 @@ function findChrome() {
     try { return execFileSync('sh', ['-lc', `command -v ${command}`], { encoding: 'utf8' }).trim(); } catch { /* try next */ }
   }
   throw new Error('Chrome/Chromium not found. Set CHROME_EXECUTABLE_PATH.');
+}
+
+async function isHumanVerificationPage(page) {
+  return page.evaluate(() => {
+    const text = String(document.body?.innerText || '').slice(0, 8000);
+    const title = String(document.title || '');
+    const hasTurnstile = Boolean(document.querySelector(
+      'iframe[src*="challenges.cloudflare.com"], input[name="cf-turnstile-response"]'
+    ));
+    return hasTurnstile || /just a moment|performing security verification|verify you are human|cloudflare/i.test(`${title} ${text}`);
+  }).catch(() => false);
+}
+
+async function waitForHumanVerification(page, pageNumber) {
+  if (HEADLESS) {
+    throw new Error(
+      `Cloudflare human verification is required on page ${pageNumber}. Set HEADLESS=false and run again.`
+    );
+  }
+
+  const waitSeconds = Math.round(HUMAN_VERIFICATION_WAIT_MS / 1000);
+  console.warn(
+    `Cloudflare verification is open for page ${pageNumber}. Tick "Verify you are human" in the visible browser tab; waiting up to ${waitSeconds} seconds.`
+  );
+
+  const deadline = Date.now() + HUMAN_VERIFICATION_WAIT_MS;
+  while (Date.now() < deadline) {
+    if (!(await isHumanVerificationPage(page))) {
+      console.log(`Cloudflare verification cleared for page ${pageNumber}; continuing.`);
+      return;
+    }
+    await sleep(1000);
+  }
+
+  throw new Error(
+    `Cloudflare human verification was not completed within ${waitSeconds} seconds on page ${pageNumber}`
+  );
 }
 
 function absoluteAvdbUrl(value, base) {
@@ -200,17 +238,14 @@ async function scanPage(page, pageNumber) {
       const navigation = await page.goto(sourcePageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       const status = navigation?.status() || 0;
 
-      if (status === 403) {
-        lastError = new Error(`AVDB page ${pageNumber} returned HTTP 403`);
-        if (!HEADLESS) {
-          console.warn(`AVDB page ${pageNumber} returned 403. Browser is visible; retrying after a short wait (attempt ${attempt}/${PAGE_RETRY_COUNT}).`);
-        }
-        if (attempt < PAGE_RETRY_COUNT) await sleep(PAGE_403_WAIT_MS * attempt);
-        continue;
+      const challengePage = status === 403 || await isHumanVerificationPage(page);
+      if (challengePage) {
+        lastError = new Error(`AVDB page ${pageNumber} returned HTTP 403 / Cloudflare verification`);
+        await waitForHumanVerification(page, pageNumber);
       }
 
       await sleep(PAGE_DELAY_MS);
-      if (status >= 400) throw new Error(`AVDB page ${pageNumber} returned HTTP ${status}`);
+      if (!challengePage && status >= 400) throw new Error(`AVDB page ${pageNumber} returned HTTP ${status}`);
 
       const htmlText = stripTags(await page.content()).toLowerCase();
       if (/site unavailable|unable to access this site|service unavailable/.test(htmlText)) {
