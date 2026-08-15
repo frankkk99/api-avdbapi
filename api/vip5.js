@@ -25,14 +25,19 @@ const PUBLIC_FIELDS = [
   'updated_at',
 ].join(',');
 
+const DEFAULT_SUPABASE_URL = 'https://qlunnckudeynhruxzpnb.supabase.co';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_R2p_bYC1at8xYOdHS1ktGw_Ef6TLPMh';
+
 function env(name) {
   return process.env[name] || '';
 }
 
-function supabaseConfig() {
-  const baseUrl = env('SUPABASE_URL') || env('NEXT_PUBLIC_SUPABASE_URL');
-  const key = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
-  if (!baseUrl || !key) throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+function supabaseConfig(requireServiceRole = false) {
+  const baseUrl = env('SUPABASE_URL') || env('NEXT_PUBLIC_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
+  const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
+  const publicKey = env('SUPABASE_PUBLISHABLE_KEY') || env('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+  const key = requireServiceRole ? serviceKey : (serviceKey || publicKey);
+  if (!baseUrl || !key) throw new Error(requireServiceRole ? 'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required' : 'Supabase public configuration is required');
   return { baseUrl: baseUrl.replace(/\/$/, ''), key };
 }
 
@@ -45,8 +50,8 @@ function setCors(res, request) {
   res.setHeader('Vary', 'Origin');
 }
 
-async function supabaseRequest(path, options = {}) {
-  const { baseUrl, key } = supabaseConfig();
+async function supabaseRequest(path, options = {}, requireServiceRole = false) {
+  const { baseUrl, key } = supabaseConfig(requireServiceRole);
   const response = await fetch(`${baseUrl}/rest/v1/${path}`, {
     ...options,
     headers: {
@@ -118,14 +123,14 @@ async function adminAction(request, response) {
       method: 'POST',
       headers: { Prefer: 'return=representation' },
       body: JSON.stringify({ start_page: startPage, end_page: endPage, current_page: startPage, status: 'queued' }),
-    });
+    }, true);
     return response.status(201).json({ ok: true, run: result.data?.[0] || null });
   }
 
   if (action === 'run_status') {
     const runId = String(body.runId || '');
     if (!/^[0-9a-f-]{36}$/i.test(runId)) return response.status(400).json({ ok: false, error: 'Invalid runId' });
-    const result = await supabaseRequest(`avdb_vip5_runs?id=eq.${runId}&select=*`);
+    const result = await supabaseRequest(`avdb_vip5_runs?id=eq.${runId}&select=*`, {}, true);
     return response.status(200).json({ ok: true, run: result.data?.[0] || null });
   }
 
@@ -136,7 +141,7 @@ async function adminAction(request, response) {
       method: 'PATCH',
       headers: { Prefer: 'return=representation' },
       body: JSON.stringify({ is_active: Boolean(body.isActive), updated_at: new Date().toISOString() }),
-    });
+    }, true);
     return response.status(200).json({ ok: true, item: result.data?.[0] || null });
   }
 
