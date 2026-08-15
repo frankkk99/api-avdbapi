@@ -1,48 +1,25 @@
 (function () {
-  const cards = [
-    { id: 'movie-01', type: 'movie', label: 'Movie', title: 'Untitled Feature 01', code: 'M / 01', meta: '2026 · 2h 08m', year: 2026, genre: 'Drama', status: 'waiting', visible: true },
-    { id: 'movie-02', type: 'movie', label: 'Movie', title: 'Untitled Feature 02', code: 'M / 02', meta: '2026 · 1h 54m', year: 2026, genre: 'Action', status: 'waiting', visible: true },
-    { id: 'series-01', type: 'series', label: 'Series', title: 'Untitled Series 01', code: 'S / 01', meta: 'S01 · 08 EP', year: 2026, genre: 'Mystery', status: 'waiting', visible: true },
-    { id: 'special-01', type: 'special', label: 'Special', title: 'Untitled Special 01', code: 'X / 01', meta: 'Special · 4K', year: 2026, genre: 'Special', status: 'waiting', visible: true },
-    { id: 'series-02', type: 'series', label: 'Series', title: 'Untitled Series 02', code: 'S / 02', meta: 'S01 · 10 EP', year: 2025, genre: 'Sci-Fi', status: 'waiting', visible: true },
-    { id: 'movie-03', type: 'movie', label: 'Movie', title: 'Untitled Feature 03', code: 'M / 03', meta: '2026 · 2h 21m', year: 2026, genre: 'Thriller', status: 'waiting', visible: true },
-    { id: 'special-02', type: 'special', label: 'Special', title: 'Untitled Special 02', code: 'X / 02', meta: 'Special · 16:9', year: 2025, genre: 'Documentary', status: 'waiting', visible: true },
-    { id: 'movie-04', type: 'movie', label: 'Movie', title: 'Untitled Feature 04', code: 'M / 04', meta: '2025 · 1h 48m', year: 2025, genre: 'Romance', status: 'waiting', visible: true },
-    { id: 'series-03', type: 'series', label: 'Series', title: 'Untitled Series 03', code: 'S / 03', meta: 'S02 · 06 EP', year: 2025, genre: 'Drama', status: 'waiting', visible: true },
-    { id: 'movie-05', type: 'movie', label: 'Movie', title: 'Untitled Feature 05', code: 'M / 05', meta: '2025 · 2h 02m', year: 2025, genre: 'Comedy', status: 'waiting', visible: true },
-    { id: 'series-04', type: 'series', label: 'Series', title: 'Untitled Series 04', code: 'S / 04', meta: 'S01 · 12 EP', year: 2026, genre: 'Drama', status: 'waiting', visible: true },
-    { id: 'movie-06', type: 'movie', label: 'Movie', title: 'Untitled Feature 06', code: 'M / 06', meta: '2026 · 1h 39m', year: 2026, genre: 'Action', status: 'waiting', visible: true },
-  ].map((card) => ({
-    ...card,
-    playerUrl: '',
-    playerOrigin: 'https://upload18.org',
-    playerReferer: 'https://upload18.org/',
-    playerUserAgent: '',
-  }));
-
-  const importedCards = Array.isArray(window.AVDB_IMPORTED_MOVIES) && window.AVDB_IMPORTED_MOVIES.length
-    ? window.AVDB_IMPORTED_MOVIES
-    : cards;
-  const importedSeries = importedCards.filter((card) => card.type === 'series').length;
-  const importedPlayers = importedCards.filter((card) => Boolean(card.playerUrl)).length;
-  const importedPosters = importedCards.filter((card) => Boolean(card.posterUrl || card.thumbUrl)).length;
+  // The public site is intentionally empty until it loads VIP5 from /api/vip5.
+  // Keeping no local records here prevents placeholder or stale JSON from becoming
+  // a second source of truth.
+  const importedCards = [];
 
   window.AVDB_STORAGE_KEY = 'avdb-site-config-v1';
   window.AVDB_DEFAULT_CONFIG = {
     version: 2,
     site: { name: 'AVDB', eyebrow: 'MOVIE LIBRARY', footerNote: 'Imported movie records from the AVDB API.' },
     hero: {
-      eyebrow: 'AVDB API / imported records',
+      eyebrow: 'AVDB API / VIP5 records',
       lead: 'คลังหนังจริง',
-      accent: 'พร้อมดูจากข้อมูล API',
-      description: 'การ์ดแนวตั้งจากข้อมูล AVDB API พร้อมโปสเตอร์ หมวดหมู่ รหัสเรื่อง และ Player ที่เชื่อมต่อผ่าน HLSTest',
+      accent: 'พร้อมดูจากข้อมูล VIP5',
+      description: 'การ์ดแนวตั้งจากข้อมูล AVDB API ที่บันทึกใน Supabase VIP5 พร้อมโปสเตอร์ หมวดหมู่ รหัสเรื่อง และ Player source',
       cta: 'เปิดคลังหนัง',
-      status: 'DATA SYNCED',
+      status: 'VIP5 LIVE',
     },
     stats: [
-      { label: 'Imported records', value: String(importedCards.length), note: 'records from attached JSON' },
-      { label: 'Series records', value: String(importedSeries), note: 'episode records detected' },
-      { label: 'Poster / player', value: `${importedPosters} / ${importedPlayers}`, note: 'ready for the front end' },
+      { label: 'VIP5 records', value: String(importedCards.length), note: 'records from Supabase VIP5' },
+      { label: 'Series records', value: '0', note: 'waiting for VIP5 sync' },
+      { label: 'Poster / player', value: '0 / 0', note: 'waiting for VIP5 sync' },
     ],
     sections: { hero: true, stats: true, library: true, blueprint: true, footer: true },
     cards: importedCards,
