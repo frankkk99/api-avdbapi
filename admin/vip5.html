@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080a12" />
+    <title>VIP5 AVDB Sync · AVDB Admin</title>
+    <link rel="stylesheet" href="../admin.css" />
+    <link rel="stylesheet" href="./vip5.css" />
+  </head>
+  <body>
+    <div class="vip5-shell">
+      <header class="vip5-header">
+        <a class="back-link" href="../admin.html">← กลับ Admin Control Center</a>
+        <div class="eyebrow"><span class="eyebrow-dot"></span> AVDB / VIP5 ingestion</div>
+        <h1>นำเข้าข้อมูล AVDB เข้า VIP5</h1>
+        <p>สร้าง Run จากหน้า 1 ถึง 10,262 แล้วให้ Local Runner ดึง API และบันทึก metadata ลง Supabase</p>
+      </header>
+
+      <main>
+        <section class="vip5-card">
+          <div class="section-head">
+            <div><span class="panel-kicker">Run configuration</span><h2>สร้างงานนำเข้า</h2></div>
+            <span class="source-badge">SOURCE: AVDBAPI</span>
+          </div>
+          <div class="form-grid">
+            <label>Admin key<input type="password" data-admin-key autocomplete="off" placeholder="AVDB_ADMIN_KEY" /></label>
+            <label>หน้าเริ่มต้น<input type="number" data-start-page min="1" value="1" /></label>
+            <label>หน้าสุดท้าย<input type="number" data-end-page min="1" value="10262" /></label>
+          </div>
+          <div class="action-row">
+            <button class="primary-button" type="button" data-create-run>สร้าง Run VIP5</button>
+            <button class="secondary-button" type="button" data-load-items>โหลดรายการล่าสุด</button>
+            <span class="inline-status" data-admin-status>ยังไม่ได้เชื่อมต่อ</span>
+          </div>
+          <p class="security-note">Key นี้เก็บใน session ของแท็บนี้เท่านั้น และส่งเฉพาะไปยัง `/api/vip5` ไม่ใส่ไว้ในโค้ดหน้าเว็บ</p>
+        </section>
+
+        <section class="vip5-card">
+          <div class="section-head"><div><span class="panel-kicker">Runner status</span><h2>สถานะ Run</h2></div><span class="run-state" data-run-state>IDLE</span></div>
+          <div class="run-id" data-run-id>ยังไม่มี Run</div>
+          <div class="progress-track"><span data-progress-bar></span></div>
+          <div class="progress-label"><span data-progress-label>0 / 0 pages</span><span data-progress-percent>0%</span></div>
+          <div class="stats-grid">
+            <div><small>Pages scanned</small><strong data-run-pages>0</strong></div>
+            <div><small>Items found</small><strong data-run-found>0</strong></div>
+            <div><small>Items upserted</small><strong data-run-upserted>0</strong></div>
+            <div><small>Failed pages</small><strong data-run-failed>0</strong></div>
+          </div>
+          <p class="run-error" data-run-error hidden></p>
+        </section>
+
+        <section class="vip5-card runner-card">
+          <div class="section-head"><div><span class="panel-kicker">Local runner</span><h2>คำสั่งสำหรับ VPS / aaPanel</h2></div><span class="source-badge">SERVICE ROLE ONLY</span></div>
+          <p>หน้าเว็บทำหน้าที่สร้างและดูสถานะ Run ส่วนการดึง 10,262 หน้าให้รันจากเครื่องที่มี Chromium เพื่อไม่ให้หมดเวลาแบบ serverless</p>
+          <pre><code>cd runner
+npm install
+SUPABASE_URL="https://YOUR_PROJECT.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="เก็บไว้ในเครื่อง runner เท่านั้น" \
+START_PAGE=1 END_PAGE=10262 npm start</code></pre>
+          <p class="muted">ถ้าหยุดกลางทาง ให้ใช้ <code>RUN_ID=&lt;run-id&gt;</code> เดิมเพื่อ resume จากหน้าล่าสุด</p>
+        </section>
+
+        <section class="vip5-card">
+          <div class="section-head"><div><span class="panel-kicker">Public source</span><h2>รายการ VIP5 ล่าสุด</h2></div><span class="source-badge">VIP5 ONLY</span></div>
+          <div class="item-list" data-item-list><div class="empty-list">กด “โหลดรายการล่าสุด” เพื่ออ่านจาก Supabase</div></div>
+        </section>
+      </main>
+    </div>
+    <div class="toast" data-toast></div>
+    <script src="./vip5.js"></script>
+  </body>
+</html>
