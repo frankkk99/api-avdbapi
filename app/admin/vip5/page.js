@@ -56,8 +56,7 @@ export default function Vip5AdminPage() {
   async function createRun() {
     try {
       const key = getKey();
-      if (!key) throw new Error('กรุณาใส่ AVDB_ADMIN_KEY');
-      window.sessionStorage.setItem(ADMIN_KEY, key);
+      if (key) window.sessionStorage.setItem(ADMIN_KEY, key);
       const page = Math.max(Number(pageNumber) || 1, 1);
       const data = await post({ action: 'create_run', startPage: page, endPage: page });
       window.sessionStorage.setItem(RUN_KEY, data.run.id);
