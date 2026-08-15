@@ -1,0 +1,12 @@
+{
+  "name": "avdb-vip5-runner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node avdb-vip5-runner.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.112.3",
+    "puppeteer-core": "25.1.0"
+  }
+}
