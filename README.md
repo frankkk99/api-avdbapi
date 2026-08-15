@@ -42,7 +42,7 @@ npm start
 cd runner
 npm install
 cp .env.example .env
-# ใส่ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY และ CHROME_EXECUTABLE_PATH ใน environment ของเครื่อง runner
+# ใส่ SUPABASE_URL, SUPABASE_SECRET_KEY และ CHROME_EXECUTABLE_PATH ใน environment ของเครื่อง runner
 npm start
 ```
 
