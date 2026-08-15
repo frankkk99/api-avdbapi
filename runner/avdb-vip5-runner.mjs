@@ -10,6 +10,11 @@ const DEFAULT_START = Math.max(Number(process.env.START_PAGE || 1), 1);
 const DEFAULT_END = Math.max(Number(process.env.END_PAGE || 10262), DEFAULT_START);
 const PAGE_DELAY_MS = Math.max(Number(process.env.PAGE_DELAY_MS || 1200), 0);
 const API_CONCURRENCY = Math.min(Math.max(Number(process.env.API_CONCURRENCY || 6), 1), 8);
+const HEADLESS = !['0', 'false', 'no', 'off'].includes(String(process.env.HEADLESS || 'true').toLowerCase());
+const CHROME_USER_DATA_DIR = process.env.CHROME_USER_DATA_DIR || '';
+const PAGE_RETRY_COUNT = Math.min(Math.max(Number(process.env.PAGE_RETRY_COUNT || 3), 1), 5);
+const PAGE_403_WAIT_MS = Math.max(Number(process.env.PAGE_403_WAIT_MS || 10000), 0);
+const MAX_CONSECUTIVE_403 = Math.min(Math.max(Number(process.env.MAX_CONSECUTIVE_403 || 5), 1), 20);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) are required');
@@ -188,28 +193,61 @@ async function updateRun(runId, patch) {
 
 async function scanPage(page, pageNumber) {
   const sourcePageUrl = pageUrl(pageNumber);
-  const navigation = await page.goto(sourcePageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  const status = navigation?.status() || 0;
-  await sleep(PAGE_DELAY_MS);
-  if (status >= 400) throw new Error(`AVDB page ${pageNumber} returned HTTP ${status}`);
-  const htmlText = stripTags(await page.content()).toLowerCase();
-  if (/site unavailable|unable to access this site|service unavailable/.test(htmlText)) throw new Error(`AVDB page ${pageNumber} is unavailable`);
-  const links = await extractApiLinks(page, sourcePageUrl);
-  if (!links.length) throw new Error(`No API buttons found on page ${pageNumber}`);
-  const results = await fetchApiPayloads(page, links);
-  const items = results.map((result) => normalizeResult(result, pageNumber, sourcePageUrl)).filter(Boolean);
-  return { sourcePageUrl, apiLinks: links.length, items };
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= PAGE_RETRY_COUNT; attempt += 1) {
+    try {
+      const navigation = await page.goto(sourcePageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const status = navigation?.status() || 0;
+
+      if (status === 403) {
+        lastError = new Error(`AVDB page ${pageNumber} returned HTTP 403`);
+        if (!HEADLESS) {
+          console.warn(`AVDB page ${pageNumber} returned 403. Browser is visible; retrying after a short wait (attempt ${attempt}/${PAGE_RETRY_COUNT}).`);
+        }
+        if (attempt < PAGE_RETRY_COUNT) await sleep(PAGE_403_WAIT_MS * attempt);
+        continue;
+      }
+
+      await sleep(PAGE_DELAY_MS);
+      if (status >= 400) throw new Error(`AVDB page ${pageNumber} returned HTTP ${status}`);
+
+      const htmlText = stripTags(await page.content()).toLowerCase();
+      if (/site unavailable|unable to access this site|service unavailable/.test(htmlText)) {
+        throw new Error(`AVDB page ${pageNumber} is unavailable`);
+      }
+
+      const links = await extractApiLinks(page, sourcePageUrl);
+      if (!links.length) throw new Error(`No API buttons found on page ${pageNumber}`);
+      const results = await fetchApiPayloads(page, links);
+      const items = results.map((result) => normalizeResult(result, pageNumber, sourcePageUrl)).filter(Boolean);
+      return { sourcePageUrl, apiLinks: links.length, items };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt < PAGE_RETRY_COUNT) await sleep(PAGE_403_WAIT_MS * attempt);
+    }
+  }
+
+  throw lastError || new Error(`AVDB page ${pageNumber} could not be scanned`);
 }
 
 async function main() {
   const run = await getOrCreateRun();
   if (['completed', 'cancelled'].includes(run.status)) throw new Error(`Run ${run.id} is already ${run.status}`);
-  const browser = await puppeteer.launch({
+  const browserOptions = {
     executablePath: findChrome(),
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    defaultViewport: { width: 1440, height: 1000, deviceScaleFactor: 1 },
-  });
+    headless: HEADLESS ? 'new' : false,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-blink-features=AutomationControlled',
+      ...(HEADLESS ? [] : ['--start-maximized']),
+    ],
+    defaultViewport: HEADLESS ? { width: 1440, height: 1000, deviceScaleFactor: 1 } : null,
+  };
+  if (CHROME_USER_DATA_DIR) browserOptions.userDataDir = CHROME_USER_DATA_DIR;
+  const browser = await puppeteer.launch(browserOptions);
   const page = await browser.newPage();
   await page.setUserAgent(process.env.USER_AGENT || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/149 Safari/537.36');
   await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9,th;q=0.8' });
@@ -218,6 +256,7 @@ async function main() {
   let itemsFound = run.items_found || 0;
   let itemsUpserted = run.items_upserted || 0;
   let failedPages = run.failed_pages || 0;
+  let consecutive403 = 0;
   const start = Math.max(run.current_page || run.start_page, run.start_page);
   try {
     await updateRun(run.id, { status: 'running', started_at: run.started_at || new Date().toISOString(), last_error: null });
@@ -247,17 +286,25 @@ async function main() {
         failedPages += 1;
         pagesScanned += 1;
         const message = error instanceof Error ? error.message : String(error);
-        await updateRun(run.id, {
-          status: 'running',
+        const is403 = /HTTP 403/.test(message);
+        consecutive403 = is403 ? consecutive403 + 1 : 0;
+        const shouldStop = is403 && consecutive403 >= MAX_CONSECUTIVE_403;
+        const patch = {
+          status: shouldStop ? 'failed' : 'running',
           current_page: pageNumber + 1,
           pages_scanned: pagesScanned,
           items_found: itemsFound,
           items_upserted: itemsUpserted,
           failed_pages: failedPages,
           last_page_url: pageUrl(pageNumber),
-          last_error: message,
-        });
-        console.error(JSON.stringify({ page: pageNumber, error: message }));
+          last_error: shouldStop
+            ? `Stopped after ${consecutive403} consecutive HTTP 403 responses`
+            : message,
+        };
+        if (shouldStop) patch.finished_at = new Date().toISOString();
+        await updateRun(run.id, patch);
+        console.error(JSON.stringify({ page: pageNumber, error: message, consecutive403 }));
+        if (shouldStop) throw new Error(patch.last_error);
       }
     }
   } catch (error) {
